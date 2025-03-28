@@ -1,43 +1,83 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Tag } from "../../../types/Notes/noteTypes";
 import { useDispatch, useSelector } from "react-redux";
-import { AppDispatch } from "../../../app/store";
-import { addNote, selectedNotes } from "../../../features/Notes/NotesSlice";
-import { useNavigate } from "react-router-dom";
+import { AppDispatch, RootState } from "../../../app/store";
+import {
+  addNote,
+  editNote,
+  getNoteById,
+  selectedNotes,
+} from "../../../features/Notes/NotesSlice";
+import { useNavigate, useParams } from "react-router-dom";
 
-const NoteForm: React.FC= () => {
+const NoteForm: React.FC = () => {
   const [title, setTitle] = useState("");
   const [markdown, setMarkdown] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedTags, setSelectedTags] = useState<Tag[]>([]);
-  
+  const { id } = useParams<string>();
+  const note = useSelector((state: RootState) =>
+    id ? getNoteById(state, id) : null
+  );
+
+  useEffect(() => {
+    if (note) {
+      setTitle(note.title);
+      setMarkdown(note.markdown);
+      setSelectedTags(note.tags);
+    }
+  }, [note]);
+
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
   const notes = useSelector(selectedNotes);
-  
-  const existingTags = Array.from(new Set(notes.flatMap(note => note.tags.map(tag => tag.label))));
-  
-  const filteredTags = existingTags.filter(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()) &&
-    !selectedTags.some(t => t.label === tag));
-  
+
+  const existingTags = Array.from(
+    new Set(notes.flatMap((note) => note.tags.map((tag) => tag.label)))
+  );
+
+  const filteredTags = existingTags.filter(
+    (tag) =>
+      tag.toLowerCase().includes(searchTerm.toLowerCase()) &&
+      !selectedTags.some((t) => t.label === tag)
+  );
+
   const addTag = (label: string) => {
-    if (!selectedTags.some(tag => tag.label === label)) {
+    if (!selectedTags.some((tag) => tag.label === label)) {
       setSelectedTags([...selectedTags, { id: Date.now().toString(), label }]);
     }
     setSearchTerm("");
   };
-  
+
   const removeTag = (id: string) => {
-    setSelectedTags(selectedTags.filter(tag => tag.id !== id));
+    setSelectedTags(selectedTags.filter((tag) => tag.id !== id));
   };
-  
+
+  function validate() {
+    if (title === "" || markdown === "" || selectedTags.length === 0) {
+      return false;
+    }
+    else{
+      return true;
+    }
+  }
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    dispatch(addNote({ title, markdown, tags: selectedTags }));
-    setTitle("");
-    setMarkdown("");
-    setSelectedTags([]);
-    navigate("/");
+    if (validate()) {
+      if (id) {
+        dispatch(editNote({ id: id, title, markdown, tags: selectedTags }));
+      } else {
+        dispatch(addNote({ title, markdown, tags: selectedTags }));
+      }
+      setTitle("");
+      setMarkdown("");
+      setSelectedTags([]);
+      navigate("/");
+    }
+    else {
+      alert("Please Fill all the Fields.!!!")
+    }
   };
 
   return (
@@ -67,9 +107,15 @@ const NoteForm: React.FC= () => {
               </label>
               <div className="flex flex-wrap items-center gap-2 border border-gray-300 p-2 rounded-lg">
                 {selectedTags.map((tag) => (
-                  <span key={tag.id} className="bg-blue-500 text-white px-2 py-1 rounded-md flex items-center gap-1">
+                  <span
+                    key={tag.id}
+                    className="bg-blue-500 text-white px-2 py-1 rounded-md flex items-center gap-1"
+                  >
                     {tag.label}
-                    <button onClick={() => removeTag(tag.id)} className="text-white ml-1 hover:text-gray-200">
+                    <button
+                      onClick={() => removeTag(tag.id)}
+                      className="text-white ml-1 hover:text-gray-200"
+                    >
                       ✕
                     </button>
                   </span>

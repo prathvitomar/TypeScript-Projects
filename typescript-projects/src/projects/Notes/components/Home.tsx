@@ -2,12 +2,14 @@ import React, { useState } from "react";
 import { Tag } from "../../../types/Notes/noteTypes";
 import { useSelector } from "react-redux";
 import { selectedNotes } from "../../../features/Notes/NotesSlice";
+import { useNavigate } from "react-router-dom";
 
 const Home: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [titleSearch, setTitleSearch] = useState<string>("");
   const [selectedTags, setSelectedTags] = useState<Tag[]>([]);
   const notes = useSelector(selectedNotes);
+  const navigate = useNavigate();
 
   const allTags = Array.from(
     new Set(notes.flatMap((note) => note.tags.map((tag) => tag.label)))
@@ -90,14 +92,16 @@ const Home: React.FC = () => {
       <div className="sm:col-span-3 mt-5 grid grid-cols-3 gap-5">
         {filteredNotes.length > 0 ? (
           filteredNotes.map((note) => (
-            <div key={note.id} className="max-w-sm rounded overflow-hidden shadow-lg">
+            <div key={note.id} onClick={()=> navigate(`/${note.id}`)} className=" cursor-pointer max-w-sm rounded overflow-hidden shadow-lg">
               <div className="px-6 py-4">
                 <div className="font-bold text-xl mb-2">{note.title}</div>
                 <p className="text-gray-700 text-base">{note.markdown}</p>
               </div>
               <div className="px-6 pt-4 pb-2">
                 {note.tags.map((tag) => (
-                  <span onClick={() => addTag(tag.label)} key={tag.id} className="cursor-pointer inline-block bg-gray-200 rounded-full px-3 py-1 text-sm font-semibold text-gray-700 mr-2 mb-2">
+                  <span onClick={(e) =>{
+                    e.stopPropagation();
+                    addTag(tag.label)}} key={tag.id} className="cursor-pointer inline-block bg-gray-200 rounded-full px-3 py-1 text-sm font-semibold text-gray-700 mr-2 mb-2">
                     {tag.label}
                   </span>
                 ))}

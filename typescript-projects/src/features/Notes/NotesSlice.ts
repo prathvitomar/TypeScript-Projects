@@ -28,6 +28,19 @@ const NoteSlice = createSlice({
                 }
             });
         },
+
+        editNote : (state, action : PayloadAction<{id : string,title: string; markdown: string; tags: Tag[]}>)=>{
+            const note = state.notes.find(note => note.id === action.payload.id);
+            if (note) {
+                note.title = action.payload.title;
+                note.markdown = action.payload.markdown;
+                note.tags = action.payload.tags;
+            }
+        },
+
+        deleteNote : (state, action : PayloadAction<{id : string}>)=>{
+            state.notes = state.notes.filter((note)=> note.id !== action.payload.id);
+        },
         
         addTag: (state, action: PayloadAction<string>) => {
             if (!state.tags.includes(action.payload)) {
@@ -41,8 +54,8 @@ const NoteSlice = createSlice({
     }
 });
 
-export const { addNote, addTag, removeTag } = NoteSlice.actions;
+export const { addNote, editNote,deleteNote, addTag, removeTag } = NoteSlice.actions;
 export const selectedNotes = (state: { notes: NoteState }) => state.notes.notes;
 export const selectTags = (state: { notes: NoteState }) => state.notes.tags;
-
+export const getNoteById = (state : {notes : NoteState}, id : string) => state.notes.notes.find((note) => note.id === id)
 export default NoteSlice.reducer;

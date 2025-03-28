@@ -1,9 +1,11 @@
 import { configureStore } from '@reduxjs/toolkit'
 import habitReducer from '../features/HabitTracker/habit-slice';
+import noteReducer from '../features/Notes/NotesSlice.ts';
 
 const store = configureStore({
     reducer : {
-        habits : habitReducer
+        habits : habitReducer,
+        notes : noteReducer
     }
 })
 
